@@ -1,0 +1,3 @@
+Fotoğraf çek / seç ardından otomatik ücretsiz deneme başlar. Dört köşe veya önceden tip seçimi gerektirmez. Mevcut manuel asistan ve ayrı kontrol ekranı korunur.
+Tip görsel benzerlikten adaydır; eğitilmiş bir sınıflandırıcı değildir. Gövde sınırları geçici görüntü kurallarıyla otomatik tahmin edilir. Tepe başlangıcı ve taban sınırı doğrulanamazsa sayım yanlış olabilir. Eşiklerde sayım değişirse boy kodu verilmez. Tam tablo eşleşmesi dışında yuvarlama yapılmaz. L yarım, BER tam eğik; diğer tipler tam eğik geçici varsayımıdır.
+Bu sürüm gerçek arazi sayım doğruluğu testinden geçmedi. Referans sayısını artırmak otomatik eğitim yapmaz; referansların uygulamaya eklenmesi ve tekrar test gerekir. Sonuçlar mühendislik ölçümü değildir.

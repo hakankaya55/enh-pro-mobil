@@ -12,6 +12,8 @@ block.innerHTML=`<h2>Fotoğraftan Direk Tanıma <small>· Tek Devre</small></h2>
 <button id="pApply" hidden style="margin-top:10px">SONUCU KONTROL ETTİM · ASİSTANA AKTAR</button>
 <details style="margin-top:18px"><summary>Etiketli tek devre referansları</summary><label>Direk tipi</label><select id="pRefType"></select><label>Görsel</label><select id="pRefMode"><option value="field">Arazi fotoğrafı</option><option value="technical">Teknik şema</option></select><img id="pRef" alt="Etiketli referans" style="max-width:100%;max-height:650px;display:block;margin:auto;object-fit:contain"></details>`;
 q('boy').appendChild(block);
+const automatic=document.createElement('div');automatic.innerHTML='<h3>Fotoğraf çek · Otomatik deneme</h3><button id="pAuto">FOTOĞRAFTAN TİP VE ÇAPRAZ BUL · ÜCRETSİZ</button><div id="pAutoResult" role="status" style="white-space:pre-wrap;margin:12px 0">Direğin tamamını ortalayarak çekin. Sonuçlar deneysel adaydır.</div>';block.insertBefore(automatic,q('pAnalyze'));
+
 const countLink=document.createElement('p');countLink.innerHTML='<a href="./count.html">ÜCRETSİZ · Deneysel otomatik çapraz sayımını aç</a>';block.prepend(countLink);
 const manual=document.createElement('details');
 manual.innerHTML=`<summary>Fotoğrafla elle karşılaştır · Bağlantısız</summary><p>Fotoğrafınızı üstte inceleyin; etiketli referanslarla karşılaştırıp tip ve çapraz sayısını kendiniz seçin. Bu bölüm otomatik tanıma yapmaz.</p><label>Kontrol ettiğiniz direk tipi</label><select id="pManualType"></select><label>Tek yüzde saydığınız gövde çaprazı</label><select id="pManualCross"></select><p id="pManualResult" role="status"></p><button id="pManualApply">SEÇİMİ ASİSTANA AKTAR</button>`;
@@ -25,6 +27,29 @@ const local=document.createElement('div');
 local.innerHTML=`<h3>Ücretsiz · Cihazda benzerlik karşılaştırması</h3><p>Direk fotoğrafın ortasında olmalı. Üst traversin bulunduğu bölümü kullanın. Benzerlik sırası doğruluk oranı değildir; sonuçları referanslarla kontrol edin.</p><label>Üstten kullanılacak bölüm: <span id="pCropValue">40</span>%</label><input id="pCrop" type="range" min="10" max="100" value="40"><p>Yalnızca üst traversi içeren bir fotoğraf seçtiyseniz %100 kullanın.</p><button id="pLocal">ÜCRETSİZ · CİHAZDA KARŞILAŞTIR</button><div id="pLocalResult" role="status" style="white-space:pre-wrap;margin:12px 0"></div>`;
 block.insertBefore(local,manual);
 q('pCrop').oninput=()=>{q('pCropValue').textContent=q('pCrop').value;};
+// Experimental automatic central-body region; no learned detector.
+async function autoBody(src,half){
+ const im=new Image();await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=src;});
+ const c=document.createElement('canvas');c.width=400;c.height=Math.round(im.height*400/im.width);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0,c.width,c.height);
+ const data=ctx.getImageData(0,0,c.width,c.height),w=c.width,h=c.height;const rows=[];
+ for(let y=Math.round(h*.07);y<Math.round(h*.88);y+=3){const xs=[];for(let x=100;x<300;x++){const i=(y*w+x)*4,v=.299*data.data[i]+.587*data.data[i+1]+.114*data.data[i+2];const sky=data.data[i+2]>data.data[i]*1.15&&data.data[i+2]>data.data[i+1]*1.02;if(v<125&&!sky)xs.push(x);}if(xs.length>=4&&xs.length<100){const left=xs[Math.floor(xs.length*.1)],right=xs[Math.floor(xs.length*.9)];if(right-left>=8&&right-left<=150)rows.push({y,left,right});}}
+ if(rows.length<30)throw Error('Gövde sınırları belirlenemedi. Direğin tamamını ortalayarak tekrar çekin.');
+ // Keep central continuous structure; automatically chosen boundaries remain provisional.
+ const top=rows[Math.floor(rows.length*.12)],bottom=rows[Math.floor(rows.length*.91)];
+ if(bottom.y-top.y<h*.35)throw Error('Sayılabilecek tam gövde bulunamadı.');
+ const band=(r)=>rows.filter(v=>Math.abs(v.y-r.y)<h*.035);const median=a=>a.sort((a,b)=>a-b)[Math.floor(a.length/2)];
+ const tl=median(band(top).map(v=>v.left)),tr=median(band(top).map(v=>v.right)),bl=median(band(bottom).map(v=>v.left)),br=median(band(bottom).map(v=>v.right));
+ if(tr-tl<8||br-bl<12)throw Error('Gövde çok dar görünüyor. Daha yakından tekrar çekin.');
+ const nw=120,nh=1000,g=new Float32Array(nw*nh);for(let y=0;y<nh;y++){const v=y/(nh-1),left=tl*(1-v)+bl*v,right=tr*(1-v)+br*v,sy=Math.round(top.y*(1-v)+bottom.y*v);for(let x=0;x<nw;x++){const u=(x/(nw-1))*(half?.5:1),sx=Math.max(0,Math.min(w-1,Math.round(left*(1-u)+right*u))),i=(sy*w+sx)*4;g[y*nw+x]=.299*data.data[i]+.587*data.data[i+1]+.114*data.data[i+2];}}
+ const counts=[18,24,30].map(t=>detectAutomatic(g,nw,nh,t).length),n=counts[1];
+ return {count:n,stable:n>0&&Math.max(...counts)-Math.min(...counts)<=1,range:counts,region:{tl,tr,bl,br,top:top.y,bottom:bottom.y,w,h}};
+}
+function detectAutomatic(g,w,h,threshold){
+ const candidates=[]; // Contrast along full diagonals, with nearby parallel background samples.
+ for(let dir of [1,-1])for(let start=0;start<h-8;start+=3)for(let dy=9;dy<=180&&start+dy<h;dy+=3){let sum=0,hits=0,n=0;for(let i=0;i<32;i++){const u=.12+.76*i/31,x=Math.round(u*(w-1)),y=Math.round(start+(dir===1?u:1-u)*dy);if(y<5||y>=h-5)continue;const a=g[y*w+x],near=(g[(y-5)*w+x]+g[(y+5)*w+x])/2,v=near-a;sum+=v;if(v>threshold*.55)hits++;n++;}const score=sum/Math.max(1,n);if(score>threshold&&hits>n*.62)candidates.push({start,end:start+dy,dir,score});}
+ candidates.sort((a,b)=>b.score-a.score);const chosen=[];for(const p of candidates){if(chosen.some(q=>Math.abs((p.start+p.end-q.start-q.end)/2)<Math.max(9,Math.min(p.end-p.start,q.end-q.start)*.45)))continue;chosen.push(p);}return chosen.sort((a,b)=>a.start-b.start);
+}
+
 async function pixels(src,percent,flip=false){
  const im=new Image();await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=src;});
  const c=document.createElement('canvas');c.width=c.height=48;const ctx=c.getContext('2d',{willReadFrequently:true});
@@ -44,15 +69,30 @@ q('pLocal').onclick=async()=>{
  }catch(e){if(current===revision)q('pLocalResult').textContent='Karşılaştırma açılamadı. Referansların yüklenmesi için ilk açılışı internetle yapın. '+e.message;}
  finally{q('pLocal').disabled=false;}
 };
+q('pAuto').onclick=async()=>{
+ if(!raw){q('pCameraFile').click();return;}
+ if(busy)return;busy=true;const current=revision,source=raw;q('pAuto').disabled=true;last=null;q('pApply').hidden=true;q('pAutoResult').textContent='Travers referansları ve gövde inceleniyor…';
+ try{const target=await pixels(source,30),rank=[];for(const [tip,e] of Object.entries(POLE_REFS.poles)){let best=-1;for(const crop of [30,40,55]){const ref=await pixels(e.field,crop);best=Math.max(best,target.reduce((sum,v,i)=>sum+v*ref[i],0));}rank.push({tip,score:best});}rank.sort((a,b)=>b.score-a.score);if(current!==revision)return;
+ const tip=rank[0].tip,ambiguous=rank[0].score-rank[1].score<.025;
+ let out='Travers benzerliğine göre adaylar: '+rank.slice(0,3).map(v=>v.tip).join(', ')+'\n';
+ if(ambiguous){q('pAutoResult').textContent=out+'Tip ayrımı belirsiz; birleşik direk sonucu verilmedi. Üst traversi daha net çekin. Fotoğraf gönderilmedi.';return;}
+ out+='Öncelikli tip adayı: '+tip+'\n';
+ try{const r=await autoBody(source,tip==='L');if(current!==revision)return;out+='Otomatik çapraz adayı: '+r.count+'\n';const code=POLE_REFS.poles[tip].cross_to_code[String(r.count)];out+=!r.stable?'Sayım farklı eşiklerde tutarlı değil; boy kodu verilmedi.':code===undefined?'Bu sayı tabloda yok; boy kodu verilmedi.':'Deneysel birleşik aday: '+tip+(code>=0?'+':'')+code+'\nBu sonuç metre cinsinden boy değildir.';
+ out+='\nGövde sınırları otomatik seçildi; başlangıç/bitiş ve ön/arka yüz ayrımı doğrulanmadı. '+(!['L','BER'].includes(tip)?'Bu tipte sayım kuralı geçici varsayımdır. ':'')+'Sonucu sahada kontrol edin. Fotoğraf gönderilmedi.';
+ }catch(e){out+='Çapraz/boy belirlenemedi: '+e.message;}
+ if(current===revision)q('pAutoResult').textContent=out;
+ }catch(e){if(current===revision)q('pAutoResult').textContent='Analiz tamamlanamadı. Referansları yüklemek için internetle ilk açılışı yapın. '+e.message;}
+ finally{busy=false;q('pAuto').disabled=false;}
+};
 q('pUrl').value=localStorage.getItem('enh-analysis-url')||'';
 q('pCamera').onclick=()=>q('pCameraFile').click();q('pChoose').onclick=()=>q('pGalleryFile').click();
 function status(s){q('pResult').textContent=s;}
 async function pick(e){
  const file=e.target.files[0];if(!file)return; if(file.size>20*1024*1024){status('Fotoğraf en fazla 20 MB olabilir.');return;}
- const current=++revision;q('pLocalResult').textContent='';raw=null;last=null;q('pApply').hidden=true;q('pPreview').hidden=true;
+ const current=++revision;q('pLocalResult').textContent='';q('pAutoResult').textContent='Yeni fotoğraf hazırlanıyor…';raw=null;last=null;q('pApply').hidden=true;q('pPreview').hidden=true;
  try{const url=URL.createObjectURL(file);const im=new Image();await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=url;});URL.revokeObjectURL(url);
  const scale=Math.min(1,2000/im.width,2600/im.height);const c=document.createElement('canvas');c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
- if(current!==revision)return;raw=c.toDataURL('image/jpeg',.9);q('pPreview').src=raw;q('pPreview').hidden=false;status('Fotoğraf hazır. Üst kısmı ve gövdeyi kontrol edip analizi başlatın.');
+ if(current!==revision)return;raw=c.toDataURL('image/jpeg',.9);q('pPreview').src=raw;q('pPreview').hidden=false;status('Fotoğraf hazır. Ücretsiz otomatik deneme başlıyor.');q('pAuto').click();
  }catch{status('Fotoğraf açılamadı. JPEG veya PNG olarak tekrar seçin.');}
 }
 q('pCameraFile').onchange=pick;q('pGalleryFile').onchange=pick;

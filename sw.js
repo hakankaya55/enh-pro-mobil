@@ -1,4 +1,4 @@
-const CACHE='enhpro-mobile-photo-v8';
+const CACHE='enhpro-mobile-photo-v9';
 const ASSETS=['./count.html','./','./index.html','./data.js','./data477.js','./banner.jpg','./icon.png','./manifest.webmanifest','./photo.js','./pole_refs.js'];
 importScripts('./pole_refs.js');
 Object.values(POLE_REFS.poles).forEach(p=>ASSETS.push('./'+p.field,'./'+p.technical));
