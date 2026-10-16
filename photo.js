@@ -12,6 +12,7 @@ block.innerHTML=`<h2>Fotoğraftan Direk Tanıma <small>· Tek Devre</small></h2>
 <button id="pApply" hidden style="margin-top:10px">SONUCU KONTROL ETTİM · ASİSTANA AKTAR</button>
 <details style="margin-top:18px"><summary>Etiketli tek devre referansları</summary><label>Direk tipi</label><select id="pRefType"></select><label>Görsel</label><select id="pRefMode"><option value="field">Arazi fotoğrafı</option><option value="technical">Teknik şema</option></select><img id="pRef" alt="Etiketli referans" style="max-width:100%;max-height:650px;display:block;margin:auto;object-fit:contain"></details>`;
 q('boy').appendChild(block);
+const countLink=document.createElement('p');countLink.innerHTML='<a href="./count.html">ÜCRETSİZ · Deneysel otomatik çapraz sayımını aç</a>';block.prepend(countLink);
 const manual=document.createElement('details');
 manual.innerHTML=`<summary>Fotoğrafla elle karşılaştır · Bağlantısız</summary><p>Fotoğrafınızı üstte inceleyin; etiketli referanslarla karşılaştırıp tip ve çapraz sayısını kendiniz seçin. Bu bölüm otomatik tanıma yapmaz.</p><label>Kontrol ettiğiniz direk tipi</label><select id="pManualType"></select><label>Tek yüzde saydığınız gövde çaprazı</label><select id="pManualCross"></select><p id="pManualResult" role="status"></p><button id="pManualApply">SEÇİMİ ASİSTANA AKTAR</button>`;
 block.appendChild(manual);

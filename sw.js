@@ -1,5 +1,5 @@
-const CACHE='enhpro-mobile-photo-v7';
-const ASSETS=['./','./index.html','./data.js','./data477.js','./banner.jpg','./icon.png','./manifest.webmanifest','./photo.js','./pole_refs.js'];
+const CACHE='enhpro-mobile-photo-v8';
+const ASSETS=['./count.html','./','./index.html','./data.js','./data477.js','./banner.jpg','./icon.png','./manifest.webmanifest','./photo.js','./pole_refs.js'];
 importScripts('./pole_refs.js');
 Object.values(POLE_REFS.poles).forEach(p=>ASSETS.push('./'+p.field,'./'+p.technical));
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));

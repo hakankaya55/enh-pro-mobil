@@ -1,0 +1,11 @@
+DENEYSEL ÇAPRAZ SAYIMI — TÜM TEK DEVRE TİPLERİ
+Mobil: Direk Boyu Seçim Asistanı > ÜCRETSİZ · Deneysel otomatik çapraz sayımını aç.
+Windows: Fotoğraf asistanı > ÜCRETSİZ ÇAPRAZ SAYIMI. Ekran varsayılan tarayıcıda açılır. Aynı fotoğrafı bu ekranda yeniden seçin.
+Gövdenin sayılacak dört köşesini üst sol, üst sağ, alt sağ, alt sol sırasıyla seçin. Bu sınırlar otomatik bulunmaz.
+ÇAPRAZLARI SAY düğmesi görüntüdeki eğik kontrastlarını bulur ve işaretler. Arka yüz, teller ve yataylar hataya neden olabilir. İşaretleri kontrol edin; gerekirse eşiği/sınırları değiştirin veya sayıyı düzeltin.
+L: Kullanıcının yarım eğik yöntemi. Algılanan tam eğikler iki yarım sayılır; başlangıç/bitişteki yarım parçalar ayrıca elle düzeltme gerektirir. 16=L-6,23=L+0 kullanıcı örnekleriyle doğrulandı. Bu örnekler algoritmanın doğruluk testi değildir.
+BER: Kullanıcının tam eğik yöntemi;19=BER-2 kullanıcı örneği.
+BES,BET-BEY,K,LA,PA,R,P: BER sayım yöntemi geçici varsayımdır. Yöntem seçicisinden L yöntemi denenebilir. Bu tiplerin sayım yöntemi henüz kullanıcı örneğiyle doğrulanmadı.
+Boy kodu yalnızca kullanıcı sayıyı kontrol edip onayladığında mevcut tablodan tam eşleşme ile bulunur. Yakın sayıya yuvarlanmaz. Sonuç metre değildir. Belirsiz direk tipi kullanıcı tarafından seçilir.
+API ücreti yoktur. Sayım fotoğrafı analiz sunucusuna göndermez. Tam otomatik, doğrulanmış bir direk tanıma sistemi değildir.
+Kontroller: Python/JavaScript sözdizimi; boş sentetik görüntüde sıfır algılama ve beş sentetik eğikte beş algılama. Gerçek arazi fotoğraflarında sayım doğruluğu henüz ölçülmedi.
