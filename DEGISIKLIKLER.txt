@@ -1,0 +1,8 @@
+ÜCRETSİZ YEREL DENEME — TEK DEVRE
+Windows: ZIP’i çıkarın; windows/PROGRAMI_AC.bat dosyasını açın. Fotoğraf asistanında fotoğraf seçip ÜCRETSİZ · CİHAZDA KARŞILAŞTIR düğmesine basın.
+Mobil: GitHub Pages dosyalarını mobile klasörünün içindekilerle güncelleyin. Fotoğraf seçip ücretsiz karşılaştırma düğmesine basın. İlk açılışta referanslar internetle yüklenir; sonrasında önbellek kullanılabilir.
+Üstten kullanılacak yüzdeyi traversi kapsayacak biçimde seçin. Yalnızca üst kısmı çektiyseniz 100 seçin. Direk ortada olmalı; boş alanları fotoğrafı seçmeden önce kırpın.
+Bu yöntem kenar düzeni benzerliğidir; eğitilmiş tip tanıma modeli değildir. Listelenen üç aday mutlaka doğru tipi içermeyebilir. Yüzde güvenilirlik verilmez. Perspektif, arka plan ve kadraj sonucu etkiler. Direk olmayan fotoğraflarda da aday çıkabilir.
+Çapraz sayısı otomatik sayılmaz. Referansla tipi kontrol edip çapraz sayısını elle seçin. Sonuç boy kodudur; metre değildir.
+Ücretsiz düğme OpenAI API kullanmaz ve fotoğrafı sunucuya göndermez. Eski API seçeneği ayrı olarak kalır ve ücretli bağlantı gerektirir.
+Windows EXE bu pakette yoktur. EXE_OLUSTUR.bat Windows üzerinde derleme içindir.
